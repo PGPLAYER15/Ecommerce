@@ -1,4 +1,5 @@
 from pydantic import BaseModel , ConfigDict, EmailStr, Field
+from uuid import UUID
 from datetime import datetime
 from typing import Optional
 
@@ -15,6 +16,7 @@ class TokenPayload(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = Field(default="bearer")
+    user_type:str
 
 class TokenWithRefresh(Token):
     refresh_token:str
@@ -40,4 +42,4 @@ class UserRegister(BaseModel):
     name: str = Field(min_length=2, max_length=50)
     email: EmailStr
     password: str = Field(min_length=5, max_length=255)
-    role: str = Field(default='user')
+    role: str = Field(default='client')

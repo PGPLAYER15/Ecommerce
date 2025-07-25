@@ -1,17 +1,17 @@
+from typing import Generator
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from shared.config import settings
 
+DATABASE_URL = f"postgresql://{settings.postgresql_user}:{settings.postgresql_password}@{settings.postgresql_server}:{settings.postgresql_port}/{settings.postgresql_name}"
 
-DATABASE_URL = f"postgresql://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
+engine = create_engine(DATABASE_URL, echo=settings.debug)
 
-engine = create_engine(DATABASE_URL , echo= settings.DEBUG)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-base = declarative_base()
-
-def get_db():
-    db = session_local()
+def get_db() -> Generator[Session, None, None]:
+    db = SessionLocal()
     try:
         yield db
     finally:
