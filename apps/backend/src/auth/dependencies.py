@@ -6,7 +6,8 @@ from auth.models import User
 from shared.security import verify_token
 from shared.database import get_db
 from auth.schemas import TokenPayload
-
+from auth.exceptions import UserSessionExpiredException, UserNotVerifiedException
+from shared.exceptions import UserNotFoundException, InsufficientPermissionsException
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 def get_current_user(token:str = Depends(oauth2_scheme),db: Session = Depends(get_db)) -> User:
@@ -52,6 +53,12 @@ def get_current_user(token:str = Depends(oauth2_scheme),db: Session = Depends(ge
             )
             
         return user
+    except UserNotFoundException as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario No encontrado"
+        )
+    
     except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -67,6 +74,18 @@ def get_current_user(token:str = Depends(oauth2_scheme),db: Session = Depends(ge
         )
 
 async def get_admin_required(current_user:User = Depends(get_current_user)) -> User:
+    """
+    Verifica que el usuario actual tenga rol de administrador.
+    
+    Args:
+        current_user: Usuario autenticado obtenido de get_current_user
+        
+    Returns:
+        User: Usuario administrador autenticado
+        
+    Raises:
+        HTTPException: Si el usuario no tiene permisos de administrador o error interno
+    """
     try:
         if current_user.role != "admin":
             raise HTTPException(

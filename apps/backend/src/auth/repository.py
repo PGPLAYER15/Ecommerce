@@ -69,7 +69,6 @@ class UserAuthRepository(UserAuthInterface):
         try:
             await self.existing_user(user_data.email)
             
-            
             hashed_password = hash_password(user_data.password)
             
             new_user = User(
